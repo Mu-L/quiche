@@ -176,6 +176,7 @@ pub fn connect(
                 std::boxed::Box::new(writer),
                 "quiche-client qlog".to_string(),
                 format!("{} id={}", "quiche-client qlog", id),
+                true, // always log data_moved events
             );
         }
     }

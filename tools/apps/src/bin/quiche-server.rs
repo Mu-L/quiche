@@ -322,6 +322,7 @@ fn main() {
                             std::boxed::Box::new(writer),
                             "quiche-server qlog".to_string(),
                             format!("{} id={}", "quiche-server qlog", id),
+                            true, // always log data_moved events
                         );
                     }
                 }

@@ -1101,6 +1101,10 @@ pub struct Connection {
     #[cfg(feature = "qlog")]
     qlogged_peer_params: bool,
 
+    /// Whether to write qlog data_moved events.
+    #[cfg(feature = "qlog")]
+    qlog_data_moved: bool,
+
     /// DATAGRAM queues.
     dgram_recv_queue: dgram::DatagramQueue,
     dgram_send_queue: dgram::DatagramQueue,
@@ -1299,13 +1303,30 @@ macro_rules! push_frame_to_pkt {
 /// Conditional qlog action.
 ///
 /// Executes the provided body if the qlog feature is enabled and quiche
-/// has been condifigured with a log writer.
+/// has been configured with a log writer.
 macro_rules! qlog_with {
     ($qlog_streamer:expr, $qlog_streamer_ref:ident, $body:block) => {{
         #[cfg(feature = "qlog")]
         {
             if let Some($qlog_streamer_ref) = &mut $qlog_streamer {
                 $body
+            }
+        }
+    }};
+}
+
+/// Conditional qlog action.
+///
+/// Executes the provided body if the qlog feature is enabled and quiche
+/// has been configured with a log writer.
+macro_rules! qlog_moved_with {
+    ($qlog_data_moved:expr, $qlog_streamer:expr, $qlog_streamer_ref:ident, $body:block) => {{
+        #[cfg(feature = "qlog")]
+        {
+            if $qlog_data_moved {
+                if let Some($qlog_streamer_ref) = &mut $qlog_streamer {
+                    $body
+                }
             }
         }
     }};
@@ -1437,6 +1458,9 @@ impl Connection {
             #[cfg(feature = "qlog")]
             qlogged_peer_params: false,
 
+            #[cfg(feature = "qlog")]
+            qlog_data_moved: false,
+
             dgram_recv_queue: dgram::DatagramQueue::new(
                 config.dgram_recv_max_queue_len,
             ),
@@ -1515,7 +1539,7 @@ impl Connection {
     #[cfg(feature = "qlog")]
     pub fn set_qlog(
         &mut self, writer: Box<dyn std::io::Write + Send + Sync>, title: String,
-        description: String,
+        description: String, log_data_moved: bool,
     ) {
         let vp = if self.is_server {
             qlog::VantagePointType::Server
@@ -1563,6 +1587,7 @@ impl Connection {
         streamer.add_event(ev).ok();
 
         self.qlog_streamer = Some(streamer);
+        self.qlog_data_moved = log_data_moved;
     }
 
     /// Configures the given session for resumption.
@@ -3335,7 +3360,7 @@ impl Connection {
             self.streams.collect(stream_id, local);
         }
 
-        qlog_with!(self.qlog_streamer, q, {
+        qlog_moved_with!(self.qlog_data_moved, self.qlog_streamer, q, {
             let ev = qlog::event::Event::h3_data_moved(
                 stream_id.to_string(),
                 Some(offset.to_string()),
@@ -3477,7 +3502,7 @@ impl Connection {
 
         self.recovery.rate_check_app_limited();
 
-        qlog_with!(self.qlog_streamer, q, {
+        qlog_moved_with!(self.qlog_data_moved, self.qlog_streamer, q, {
             let ev = qlog::event::Event::h3_data_moved(
                 stream_id.to_string(),
                 Some(offset.to_string()),

@@ -257,11 +257,12 @@ void quiche_conn_set_keylog_fd(quiche_conn *conn, int fd);
 
 // Enables qlog to the specified file path. Returns true on success.
 bool quiche_conn_set_qlog_path(quiche_conn *conn, const char *path,
-                          const char *log_title, const char *log_desc);
+                          const char *log_title, const char *log_desc,
+                          bool log_data_moved);
 
 // Enables qlog to the specified file descriptor. Unix only.
 void quiche_conn_set_qlog_fd(quiche_conn *conn, int fd, const char *log_title,
-                             const char *log_desc);
+                             const char *log_desc, bool log_data_moved);
 
 // Configures the given session for resumption.
 int quiche_conn_set_session(quiche_conn *conn, const uint8_t *buf, size_t buf_len);

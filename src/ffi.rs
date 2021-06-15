@@ -541,7 +541,7 @@ pub extern fn quiche_conn_set_keylog_fd(conn: &mut Connection, fd: c_int) {
 #[cfg(feature = "qlog")]
 pub extern fn quiche_conn_set_qlog_path(
     conn: &mut Connection, path: *const c_char, log_title: *const c_char,
-    log_desc: *const c_char,
+    log_desc: *const c_char, log_data_moved: bool,
 ) -> bool {
     let filename = unsafe { ffi::CStr::from_ptr(path).to_str().unwrap() };
 
@@ -563,6 +563,7 @@ pub extern fn quiche_conn_set_qlog_path(
         Box::new(writer),
         title.to_string(),
         format!("{} id={}", description, conn.trace_id),
+        log_data_moved,
     );
 
     true
@@ -572,7 +573,7 @@ pub extern fn quiche_conn_set_qlog_path(
 #[cfg(all(unix, feature = "qlog"))]
 pub extern fn quiche_conn_set_qlog_fd(
     conn: &mut Connection, fd: c_int, log_title: *const c_char,
-    log_desc: *const c_char,
+    log_desc: *const c_char, log_data_moved: bool,
 ) {
     let f = unsafe { std::fs::File::from_raw_fd(fd) };
     let writer = std::io::BufWriter::new(f);
@@ -584,6 +585,7 @@ pub extern fn quiche_conn_set_qlog_fd(
         Box::new(writer),
         title.to_string(),
         format!("{} id={}", description, conn.trace_id),
+        log_data_moved,
     );
 }
 
