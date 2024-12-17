@@ -15,10 +15,10 @@ const STREAM_ID: u64 = 0;
 
 /// Send a request with a Content-Length header that specifies 5 bytes, but a
 /// body that is only 4 bytes long. This verifies https://datatracker.ietf.org/doc/html/rfc9114#section-4.1.2-3 for
-/// blog.cloudflare.com.
+/// cloudflare-quic.com.
 fn main() {
     let config = Config::new()
-        .with_host_port("blog.cloudflare.com".to_string())
+        .with_host_port("cloudflare-quic.com".to_string())
         .with_idle_timeout(2000)
         .build()
         .unwrap();
@@ -26,7 +26,7 @@ fn main() {
     let headers = vec![
         Header::new(b":method", b"POST"),
         Header::new(b":scheme", b"https"),
-        Header::new(b":authority", b"blog.cloudflare.com"),
+        Header::new(b":authority", b"cloudflare-quic.com"),
         Header::new(b":path", b"/"),
         // We say that we're going to send a body with 5 bytes...
         Header::new(b"content-length", b"5"),
